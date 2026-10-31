@@ -9,3 +9,4 @@
 /vendor/** -text -eol linguist-vendored
 Dockerfile.* linguist-language=Dockerfile
 Makefile.* linguist-language=Makefile
+.gitea/CODEOWNERS linguist-detectable=false
