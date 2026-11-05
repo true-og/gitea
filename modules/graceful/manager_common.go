@@ -12,22 +12,6 @@ import (
 	"gitea.dev/modules/gtprof"
 )
 
-// FIXME: it seems that there is a bug when using systemd Type=notify: the "Install Page" (INSTALL_LOCK=false) doesn't notify properly.
-// At the moment, no idea whether it also affects Windows Service, or whether it's a regression bug. It needs to be investigated later.
-
-type systemdNotifyMsg string
-
-const (
-	readyMsg     systemdNotifyMsg = "READY=1"
-	stoppingMsg  systemdNotifyMsg = "STOPPING=1"
-	reloadingMsg systemdNotifyMsg = "RELOADING=1"
-	watchdogMsg  systemdNotifyMsg = "WATCHDOG=1"
-)
-
-func statusMsg(msg string) systemdNotifyMsg {
-	return systemdNotifyMsg("STATUS=" + msg)
-}
-
 // Manager manages the graceful shutdown process
 type Manager struct {
 	ctx                    context.Context
@@ -79,7 +63,6 @@ func (g *Manager) prepare(ctx context.Context) {
 
 // DoImmediateHammer causes an immediate hammer
 func (g *Manager) DoImmediateHammer() {
-	g.notify(statusMsg("Sending immediate hammer"))
 	g.doHammerTime(0 * time.Second)
 }
 
@@ -91,14 +74,8 @@ func (g *Manager) DoGracefulShutdown() {
 	default:
 		close(g.shutdownRequested)
 	}
-	forked := g.forked
 	g.lock.Unlock()
 
-	if !forked {
-		g.notify(stoppingMsg)
-	} else {
-		g.notify(statusMsg("Shutting down after fork"))
-	}
 	g.doShutdown()
 }
 

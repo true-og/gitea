@@ -181,10 +181,6 @@ func (g *Manager) awaitServer(limit time.Duration) bool {
 	}
 }
 
-func (g *Manager) notify(msg systemdNotifyMsg) {
-	// Windows doesn't use systemd to notify
-}
-
 func KillParent() {
 	// Windows doesn't need to "kill parent" because there is no graceful restart
 }

@@ -14,19 +14,18 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"gitea.dev/modules/log"
 	"gitea.dev/modules/setting"
 )
 
 const (
-	listenFDsEnv = "LISTEN_FDS"
+	// listenFDsEnv tells a process started by a graceful restart (SIGHUP) how many listeners its parent
+	// handed over. It is Gitea's own variable, so listeners provided by a service manager
+	// (systemd's LISTEN_FDS socket activation) are not used.
+	listenFDsEnv = "GITEA_LISTEN_FDS"
 	startFD      = 3
 	unlinkFDsEnv = "GITEA_UNLINK_FDS"
-
-	notifySocketEnv    = "NOTIFY_SOCKET"
-	watchdogTimeoutEnv = "WATCHDOG_USEC"
 )
 
 // In order to keep the working directory the same as when we started we record
@@ -41,9 +40,6 @@ var (
 	activeListenersToUnlink   = []bool{}
 	providedListeners         = []net.Listener{}
 	activeListeners           = []net.Listener{}
-
-	notifySocketAddr string
-	watchdogTimeout  time.Duration
 )
 
 func getProvidedFDs() (savedErr error) {
@@ -51,40 +47,6 @@ func getProvidedFDs() (savedErr error) {
 	once.Do(func() {
 		mutex.Lock()
 		defer mutex.Unlock()
-		// now handle some additional systemd provided things
-		notifySocketAddr = os.Getenv(notifySocketEnv)
-		if notifySocketAddr != "" {
-			log.Debug("Systemd Notify Socket provided: %s", notifySocketAddr)
-			savedErr = os.Unsetenv(notifySocketEnv)
-			if savedErr != nil {
-				log.Warn("Unable to Unset the NOTIFY_SOCKET environment variable: %v", savedErr)
-				return
-			}
-			// FIXME: We don't handle WATCHDOG_PID
-			timeoutStr := os.Getenv(watchdogTimeoutEnv)
-			if timeoutStr != "" {
-				savedErr = os.Unsetenv(watchdogTimeoutEnv)
-				if savedErr != nil {
-					log.Warn("Unable to Unset the WATCHDOG_USEC environment variable: %v", savedErr)
-					return
-				}
-
-				s, err := strconv.ParseInt(timeoutStr, 10, 64)
-				if err != nil {
-					log.Error("Unable to parse the provided WATCHDOG_USEC: %v", err)
-					savedErr = fmt.Errorf("unable to parse the provided WATCHDOG_USEC: %w", err)
-					return
-				}
-				if s <= 0 {
-					log.Error("Unable to parse the provided WATCHDOG_USEC: %s should be a positive number", timeoutStr)
-					savedErr = fmt.Errorf("unable to parse the provided WATCHDOG_USEC: %s should be a positive number", timeoutStr)
-					return
-				}
-				watchdogTimeout = time.Duration(s) * time.Microsecond
-			}
-		} else {
-			log.Trace("No Systemd Notify Socket provided")
-		}
 
 		numFDs := os.Getenv(listenFDsEnv)
 		if numFDs == "" {
@@ -286,37 +248,4 @@ func getActiveListenersToUnlink() []bool {
 	listenersToUnlink := make([]bool, len(activeListenersToUnlink))
 	copy(listenersToUnlink, activeListenersToUnlink)
 	return listenersToUnlink
-}
-
-func getNotifySocket() (*net.UnixConn, error) {
-	if err := getProvidedFDs(); err != nil {
-		// This error will be logged elsewhere
-		return nil, nil //nolint:nilnil // return nil when no provided FDs are available
-	}
-
-	if notifySocketAddr == "" {
-		return nil, nil //nolint:nilnil // return nil when notify socket is not configured
-	}
-
-	socketAddr := &net.UnixAddr{
-		Name: notifySocketAddr,
-		Net:  "unixgram",
-	}
-
-	notifySocket, err := net.DialUnix(socketAddr.Net, nil, socketAddr)
-	if err != nil {
-		log.Warn("failed to dial NOTIFY_SOCKET %s: %v", socketAddr, err)
-		return nil, err
-	}
-
-	return notifySocket, nil
-}
-
-func getWatchdogTimeout() time.Duration {
-	if err := getProvidedFDs(); err != nil {
-		// This error will be logged elsewhere
-		return 0
-	}
-
-	return watchdogTimeout
 }

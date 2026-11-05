@@ -11,7 +11,6 @@ import (
 	"os"
 	"os/signal"
 	"runtime/pprof"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -21,28 +20,6 @@ import (
 	"gitea.dev/modules/setting"
 )
 
-func pidMsg() systemdNotifyMsg {
-	return systemdNotifyMsg("MAINPID=" + strconv.Itoa(os.Getpid()))
-}
-
-// Notify systemd of status via the notify protocol
-func (g *Manager) notify(msg systemdNotifyMsg) {
-	conn, err := getNotifySocket()
-	if err != nil {
-		// the err is logged in getNotifySocket
-		return
-	}
-	if conn == nil {
-		return
-	}
-	defer conn.Close()
-
-	if _, err = conn.Write([]byte(msg)); err != nil {
-		log.Warn("Failed to notify NOTIFY_SOCKET: %v", err)
-		return
-	}
-}
-
 func (g *Manager) start() {
 	// Now label this and all goroutines created by this goroutine with the graceful-lifecycle manager
 	pprof.SetGoroutineLabels(g.managerCtx)
@@ -50,8 +27,6 @@ func (g *Manager) start() {
 
 	g.isChild = len(os.Getenv(listenFDsEnv)) > 0 && os.Getppid() > 1
 
-	g.notify(statusMsg("Starting Gitea"))
-	g.notify(pidMsg())
 	go g.handleSignals(g.managerCtx)
 
 	// Handle clean up of unused provided listeners	and delayed start-up
@@ -67,7 +42,6 @@ func (g *Manager) start() {
 		for {
 			if g.createdServer >= numberOfServersToCreate {
 				g.createServerCond.L.Unlock()
-				g.notify(readyMsg)
 				return
 			}
 			select {
@@ -89,8 +63,6 @@ func (g *Manager) start() {
 				return
 			case <-time.After(setting.StartupTimeout):
 				log.Error("Startup took too long! Shutting down")
-				g.notify(statusMsg("Startup took too long! Shutting down"))
-				g.notify(stoppingMsg)
 				g.doShutdown()
 			}
 		}()
@@ -113,13 +85,6 @@ func (g *Manager) handleSignals(ctx context.Context) {
 		syscall.SIGTSTP,
 	)
 
-	watchdogTimeout := getWatchdogTimeout()
-	t := &time.Ticker{}
-	if watchdogTimeout != 0 {
-		g.notify(watchdogMsg)
-		t = time.NewTicker(watchdogTimeout / 2)
-	}
-
 	pid := syscall.Getpid()
 	for {
 		select {
@@ -130,7 +95,6 @@ func (g *Manager) handleSignals(ctx context.Context) {
 				g.DoGracefulRestart()
 			case syscall.SIGUSR1:
 				log.Warn("PID %d. Received SIGUSR1. Releasing and reopening logs", pid)
-				g.notify(statusMsg("Releasing and reopening logs"))
 				if err := releasereopen.GetManager().ReleaseReopen(); err != nil {
 					log.Error("Error whilst releasing and reopening logs: %v", err)
 				}
@@ -148,8 +112,6 @@ func (g *Manager) handleSignals(ctx context.Context) {
 			default:
 				log.Info("PID %d. Received %v.", pid, sig)
 			}
-		case <-t.C:
-			g.notify(watchdogMsg)
 		case <-ctx.Done():
 			log.Warn("PID: %d. Background context for manager closed - %v - Shutting down...", pid, ctx.Err())
 			g.DoGracefulShutdown()
@@ -166,8 +128,6 @@ func (g *Manager) doFork() error {
 	}
 	g.forked = true
 	g.lock.Unlock()
-
-	g.notify(reloadingMsg)
 
 	// We need to move the file logs to append pids
 	setting.RestartLogsWithPIDSuffix()
@@ -195,7 +155,6 @@ func (g *Manager) DoGracefulRestart() {
 		g.doShutdown()
 	} else {
 		log.Info("PID: %d. Not set restartable. Shutting down...", os.Getpid())
-		g.notify(stoppingMsg)
 		g.doShutdown()
 	}
 }
