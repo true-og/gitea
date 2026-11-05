@@ -1,0 +1,4 @@
+# /etc/conf.d/gitea
+GITEA_APP_INI="/var/lib/gitea/custom/conf/app.ini"
+GITEA_WORK_DIR="/opt/gitea"
+GITEA_CUSTOM="/opt/gitea/custom"

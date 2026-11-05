@@ -1,0 +1,31 @@
+#!/sbin/openrc-run
+# /etc/init.d/gitea — Gitea under supervise-daemon (auto-restart, real state tracking)
+description="Gitea – self-hosted Git service"
+
+: ${GITEA_APP_INI:=/var/lib/gitea/custom/conf/app.ini}
+: ${GITEA_WORK_DIR:=/opt/gitea}
+: ${GITEA_CUSTOM:=/opt/gitea/custom}
+export GITEA_APP_INI GITEA_WORK_DIR GITEA_CUSTOM
+export USER=gitea HOME=/var/lib/gitea
+
+supervisor="supervise-daemon"
+command="/opt/gitea/current/gitea"
+command_args="web --config ${GITEA_APP_INI}"
+command_user="gitea:gitea"
+directory="${GITEA_WORK_DIR}"
+pidfile="/run/gitea.pid"
+respawn_delay=5
+respawn_max=0
+output_log="/var/log/gitea/stdout.log"
+error_log="/var/log/gitea/stderr.log"
+
+depend() {
+	need net
+	use postgresql
+	after postgresql
+}
+
+start_pre() {
+	checkpath -d -m 0755 -o gitea:gitea /var/log/gitea
+	[ -x "$command" ] || { eerror "$command missing or not executable (check /opt/gitea/current symlink)"; return 1; }
+}

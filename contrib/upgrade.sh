@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # This is an update script for gitea installed via the binary distribution
-# from dl.gitea.com on linux as systemd service. It performs a backup and updates
+# from dl.gitea.com on linux as an OpenRC service. It performs a backup and updates
 # Gitea in place.
 # NOTE: This adds the GPG Signing Key of the Gitea maintainers to the keyring.
 # Depends on: bash, curl, xz, sha256sum. optionally jq, gpg
@@ -26,9 +26,9 @@ echo "Gitea is running. Continuing with rest of script..."
 : "${giteauser:="git"}"
 : "${sudocmd:="sudo"}"
 : "${arch:="linux-amd64"}"
-: "${service_start:="$sudocmd systemctl start gitea"}"
-: "${service_stop:="$sudocmd systemctl stop gitea"}"
-: "${service_status:="$sudocmd systemctl status gitea"}"
+: "${service_start:="$sudocmd rc-service gitea start"}"
+: "${service_stop:="$sudocmd rc-service gitea stop"}"
+: "${service_status:="$sudocmd rc-service gitea status"}"
 : "${backupopts:=""}" # see `gitea dump --help` for available options
 
 function giteacmd {
@@ -69,7 +69,7 @@ if [[ -f /etc/os-release ]]; then
     service_stop="/etc/init.d/gitea stop"
     service_status="/etc/init.d/gitea status"
   else
-    require systemctl
+    require rc-service
   fi
 fi
 
