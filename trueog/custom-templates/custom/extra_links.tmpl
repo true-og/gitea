@@ -1,0 +1,10 @@
+{{/* Gitea navbar extension hook (empty upstream): Home opens the TrueOG landing page. Signed-in
+     users also get an explicit Dashboard link at /; CSS hides their redundant logo dashboard link. */}}
+{{$landingURL := print AppSubUrl "/"}}
+{{if .IsSigned}}{{$landingURL = print AppSubUrl "/?home=1"}}{{end}}
+{{$onLanding := eq .CurrentURL $landingURL}}
+{{$dashboardURL := print AppSubUrl "/"}}
+{{$onDashboard := and .IsSigned (eq .CurrentURL $dashboardURL)}}
+<link rel="stylesheet" href="{{AssetUrlPrefix}}/css/trueog-nav.css?v=13">
+<a class="item trueog-nav-home{{if $onLanding}} active{{end}}" href="{{$landingURL}}" aria-label="Home"{{if $onLanding}} aria-current="page"{{end}}><span class="trueog-nav-home-lambda" aria-hidden="true">λ</span></a>
+{{if .IsSigned}}<a class="item trueog-nav-dashboard{{if $onDashboard}} active{{end}}" href="{{$dashboardURL}}"{{if $onDashboard}} aria-current="page"{{end}}>Dashboard</a>{{end}}

@@ -1,0 +1,37 @@
+#!/bin/sh
+# Rebuild Gitea's aggregate frontend license file and append the Monocraft OFL notice.
+set -eu
+
+binary=${1:-/opt/gitea/current/gitea}
+destination=${2:-/opt/gitea/custom/public/assets/licenses.txt}
+monocraft_license=${3:-/usr/local/share/licenses/monocraft/OFL-1.1.txt}
+
+[ -x "$binary" ] || { echo "missing Gitea binary: $binary" >&2; exit 1; }
+[ -r "$monocraft_license" ] || { echo "missing Monocraft license: $monocraft_license" >&2; exit 1; }
+
+if [ "$(id -u)" -eq 0 ]; then
+	install -d -m 755 -o gitea -g gitea "$(dirname "$destination")"
+else
+	mkdir -p "$(dirname "$destination")"
+fi
+temporary=$(mktemp "$destination.tmp.XXXXXX")
+trap 'rm -f "$temporary"' 0 1 2 15
+
+if [ "$(id -u)" -eq 0 ]; then
+	# Gitea deliberately refuses every command when invoked as root. Keep the destination write in
+	# this root-owned shell, but extract the binary's embedded notices as the service account.
+	runuser -u gitea -- env -u GITEA_WORK_DIR -u GITEA_CUSTOM \
+		HOME=/var/lib/gitea USER=gitea "$binary" embedded view public/assets/licenses.txt >"$temporary"
+else
+	env -u GITEA_WORK_DIR -u GITEA_CUSTOM "$binary" embedded view public/assets/licenses.txt >"$temporary"
+fi
+printf '\n--------------------------------------------------------------------------------\nMonocraft - SIL Open Font License 1.1\n--------------------------------------------------------------------------------\n' >>"$temporary"
+cat "$monocraft_license" >>"$temporary"
+printf '\n' >>"$temporary"
+[ "$(id -u)" -ne 0 ] || chown gitea:gitea "$temporary"
+chmod 644 "$temporary"
+mv -f "$temporary" "$destination"
+trap - 0 1 2 15
+
+grep -Fq 'Monocraft - SIL Open Font License 1.1' "$destination"
+echo "rebuilt $destination with current Gitea notices and Monocraft OFL"

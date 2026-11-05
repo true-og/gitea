@@ -1,0 +1,3 @@
+# /etc/cron.d/gitea-homepage-stats
+# Refresh the git.trueog.net homepage's statistics stylesheet (the page itself runs no JavaScript).
+*/5 * * * * gitea /usr/local/sbin/gitea-homepage-stats 2>&1 | logger -t gitea-homepage-stats

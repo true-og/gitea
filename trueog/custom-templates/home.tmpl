@@ -1,0 +1,6 @@
+{{/* Override of templates/home.tmpl (verified against Gitea 28.2.0; upstream structure unchanged): TrueOG landing page
+     for signed-out visitors. Signed-in users get their dashboard at / instead and reach the same page
+     at /?home=1 through the navbar's Home link. The page body lives in trueog/landing.tmpl. */}}
+{{template "base/head" .}}
+{{template "trueog/landing" .}}
+{{template "base/footer" .}}

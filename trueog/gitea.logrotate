@@ -1,0 +1,37 @@
+# Gitea's logs, installed to /etc/logrotate.d/gitea by install-custom-templates.sh.
+# stdout.log/stderr.log are Gitea's console log, written by OpenRC's supervise-daemon (output_log and
+# error_log in /etc/init.d/gitea), which keeps them open in append mode; copytruncate rotates them
+# without restarting Gitea. The GitHub mirror logs are appended to by gitea-branch-tag-mirror.
+/var/log/gitea/stdout.log /var/log/gitea/stderr.log {
+	daily
+	rotate 14
+	maxsize 100M
+	compress
+	delaycompress
+	missingok
+	notifempty
+	copytruncate
+	su gitea gitea
+}
+
+/var/log/gitea/github-mirror-*.log {
+	weekly
+	rotate 4
+	compress
+	delaycompress
+	missingok
+	notifempty
+	copytruncate
+	su gitea gitea
+}
+
+/var/log/gitea/trueog-divergence.log {
+	weekly
+	rotate 4
+	compress
+	delaycompress
+	missingok
+	notifempty
+	copytruncate
+	su gitea gitea
+}

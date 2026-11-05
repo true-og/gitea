@@ -1,0 +1,85 @@
+{{/* TrueOG landing page body, shared by home.tmpl (signed-out visitors at /) and
+     user/dashboard/dashboard.tmpl (signed-in users at /?home=1, the navbar's Home link). Styles and
+     images live in custom/public/assets/ (css/trueog-home.css, img/trueog-logo.png,
+     fonts/Monocraft.woff2). This page runs no JavaScript: the glyph rain is CSS, and
+     the statistics come from css/trueog-stats.css, which the gitea-homepage-stats cron job rewrites
+     every 5 minutes. Its ?t= version changes every minute (from the page's render time), so Cloudflare's
+     and browsers' 6-hour asset caches cannot serve stale numbers. */}}
+<link rel="stylesheet" href="{{AssetUrlPrefix}}/css/trueog-home.css?v=39">
+<link rel="stylesheet" href="{{AssetUrlPrefix}}/css/trueog-stats.css?t={{.PageStartTime.Format "200601021504"}}">
+<div role="main" aria-label="{{ctx.Locale.Tr "home_title"}}" class="page-content trueog-home">
+
+	{{/* trueog-guest (signed out) lets the stylesheet hide the navbar logo, which would duplicate Home. */}}
+	<section class="trueog-hero{{if not .IsSigned}} trueog-guest{{end}}">
+		<a class="trueog-logo-link" href="https://trueog.net/"><img class="trueog-logo" src="{{AssetUrlPrefix}}/img/trueog-logo.png" width="160" height="160" alt="TrueOG Network website"></a>
+		{{template "trueog/title" .}}
+		<div class="trueog-actions">
+			<a class="ui button trueog-pr" href="{{AppSubUrl}}/contribute/pull-request"><span class="trueog-action-icon">{{svg "octicon-git-pull-request"}}</span><span class="trueog-action-label">Pull request / fork</span></a>
+			<a class="ui button trueog-bug" href="{{AppSubUrl}}/contribute/bug-report"><span class="trueog-action-icon">{{svg "octicon-bug"}}</span><span class="trueog-action-label">File bug report</span></a>
+		</div>
+		{{if not .IsSigned}}
+		<div class="trueog-actions">
+			<a class="ui button trueog-github" href="{{AppSubUrl}}/user/oauth2/github">{{svg "octicon-mark-github"}} Sign in with GitHub</a>
+			<a class="ui button trueog-staff" href="{{AppSubUrl}}/user/oauth2/staffauth">{{svg "octicon-people"}} Sign in as staff</a>
+		</div>
+		{{end}}
+	</section>
+
+	<section class="trueog-cards" aria-label="About this site">
+		{{/* No two cards share a link (the full repository list is the Statistics card's Repositories
+		     link). The guide is a PDF on the main website. */}}
+		<article class="trueog-card">
+			<h2>{{svg "octicon-book" 20}} <a href="https://true-og.net/TrueOG-Contributor-Guide.pdf">Contributor guide</a></h2>
+			<p class="trueog-card-copy trueog-card-copy-xs">Learn code or maps for TrueOG. Solid work earns Technical Contributor <span class="trueog-lambda">λ</span></p>
+			<p class="trueog-card-copy trueog-card-copy-sm">Learn to contribute code or maps to TrueOG. Substantial work earns the Technical Contributor role <span class="trueog-lambda">λ</span></p>
+			<p class="trueog-card-copy trueog-card-copy-md">Learn how to contribute code or maps to TrueOG Network. Substantial committers earn the Technical Contributor role <span class="trueog-lambda">λ</span></p>
+			<p class="trueog-card-copy trueog-card-copy-lg">Learn how to contribute code or maps to TrueOG Network projects. Substantial committers earn the Technical Contributor role <span class="trueog-lambda">λ</span> in our community.</p>
+		</article>
+		{{/* Each number is CSS content from css/trueog-stats.css (see the comment at the top). Only open
+		     pull requests and open issues are counted; they link to the public indexes
+		     /pulls?state=open and /issues?state=open; gitea-public-pages regenerates both every 5 minutes
+		     from Gitea's anonymous API. The heading links to the main repository's public Activity page
+		     (merged and opened pull requests and issues over time). */}}
+		<article class="trueog-card trueog-stats">
+			<h2>{{svg "octicon-graph" 20}} <a href="{{AppSubUrl}}/trueog/true-og/activity">Statistics</a></h2>
+			<dl>
+				<div><dt>Public<br>Repos</dt><dd><a class="trueog-stat trueog-stat-repos" href="{{AppSubUrl}}/explore/repos"></a></dd></div>
+				<div><dt>Open<br>pull requests</dt><dd><a class="trueog-stat trueog-stat-pulls" href="{{AppSubUrl}}/pulls?state=open"></a></dd></div>
+				<div><dt>Open<br>issues</dt><dd><a class="trueog-stat trueog-stat-issues" href="{{AppSubUrl}}/issues?state=open"></a></dd></div>
+			</dl>
+		</article>
+		<article class="trueog-card">
+			{{/* Original 10x10 pixel squid drawn for TrueOG; one squid pixel is 2 CSS px at this size. */}}
+			<h2><svg viewBox="0 0 10 10" class="svg trueog-squid" aria-hidden="true" width="20" height="20" shape-rendering="crispEdges"><path fill="currentColor" d="M2 0h6v1H2zM1 1h8v6H1zM1 7h1v2H1zM3 7h1v3H3zM6 7h1v3H6zM8 7h1v2H8zM0 9h1v1H0zM9 9h1v1H9z"/><path fill="#FFFFFF" d="M2 4h1v1H2zM7 4h1v1H7z"/><path fill="#000000" d="M3 4h1v1H3zM6 4h1v1H6z"/></svg> <a href="{{AppSubUrl}}/trueog/Purpur">Server software</a></h2>
+			<p class="trueog-card-copy trueog-card-copy-xs">Purpur runs MCJE 1.19.4 with config, performance, and quality-of-life fixes.</p>
+			<p class="trueog-card-copy trueog-card-copy-sm">Our custom Purpur fork runs MCJE 1.19.4 with config, performance, and quality-of-life fixes.</p>
+			<p class="trueog-card-copy trueog-card-copy-md">Our custom Purpur fork runs MCJE 1.19.4 with config changes, performance optimizations, and quality-of-life fixes.</p>
+			<p class="trueog-card-copy trueog-card-copy-lg">Our custom fork of Purpur runs MCJE 1.19.4 with config changes, performance optimizations, and quality-of-life fixes for our server.</p>
+		</article>
+		<article class="trueog-card">
+			<h2>{{svg "octicon-heart-fill" 20}} <a href="{{AppSubUrl}}/trueog">100% open source</a></h2>
+			<p class="trueog-card-copy trueog-card-copy-xs">TrueOG makes config, plugins, website, and tools public for everyone.</p>
+			<p class="trueog-card-copy trueog-card-copy-sm">TrueOG makes its config, plugins, website, and tools public and available to everyone, forever.</p>
+			<p class="trueog-card-copy trueog-card-copy-md">Everything behind TrueOG is public and available to everyone, forever: our config, plugins, website, and tools.</p>
+			<p class="trueog-card-copy trueog-card-copy-lg">Everything behind TrueOG is public and available to everyone, forever: our server config, plugins, website, staff tools, and the code that powers them.</p>
+		</article>
+		<article class="trueog-card">
+			<h2>{{svg "gitea-discord" 20}} <a href="https://discord.gg/ma9pMYpBU6">Join our Discord</a></h2>
+			<p class="trueog-card-copy trueog-card-copy-xs">Chat with TrueOG community, get assistance in #plugin-help, and see what's next!</p>
+			<p class="trueog-card-copy trueog-card-copy-sm">Chat with the TrueOG community, get assistance in #plugin-help, and see what we're building next!</p>
+			<p class="trueog-card-copy trueog-card-copy-md">Chat with the TrueOG community, get assistance in #plugin-help, and see what we're building next for the network!</p>
+			<p class="trueog-card-copy trueog-card-copy-lg">Chat with the TrueOG community, get assistance in #plugin-help, and see what we're building next for TrueOG Network, its players, and contributors!</p>
+		</article>
+		<article class="trueog-card">
+			<h2>{{svg "octicon-mark-github" 20}} <a href="https://github.com/true-og">GitHub mirror</a></h2>
+			<p class="trueog-card-copy trueog-card-copy-xs">Read-only GitHub mirrors automatically receive every change made here on Gitea.</p>
+			<p class="trueog-card-copy trueog-card-copy-sm">GitHub holds read-only repository mirrors. Changes made on Gitea automatically sync over to them.</p>
+			<p class="trueog-card-copy trueog-card-copy-md">GitHub holds read-only mirrors of TrueOG repositories that moved here. Changes on Gitea automatically sync over to GitHub.</p>
+			<p class="trueog-card-copy trueog-card-copy-lg">GitHub holds read-only mirrors of TrueOG repositories that moved here. Every branch and tag change made on Gitea automatically syncs to GitHub.</p>
+		</article>
+	</section>
+
+	{{/* Absolutely positioned behind the whole page; last so the banner stays the first child. */}}
+	{{template "trueog/glyphs" .}}
+
+</div>

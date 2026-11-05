@@ -1,0 +1,12 @@
+<link rel="stylesheet" href="{{AssetUrlPrefix}}/css/trueog-global.css?v=2">
+{{/* trueog-global.js only rewords the approval note on TrueOG organization repository pages, so the landing
+     and sign-in pages load no TrueOG JavaScript. */}}
+{{if StringUtils.HasPrefix (StringUtils.ToUpper .CurrentURL) (StringUtils.ToUpper (print AppSubUrl "/trueog/"))}}<script src="{{AssetUrlPrefix}}/js/trueog-global.js?v=1" defer></script>{{end}}
+<link rel="icon" href="{{AssetUrlPrefix}}/img/favicon.png?v=1" sizes="32x32" type="image/png">
+<link rel="shortcut icon" href="{{AssetUrlPrefix}}/img/favicon.ico?v=1" type="image/x-icon">
+<link rel="apple-touch-icon" href="{{AssetUrlPrefix}}/img/apple-touch-icon.png?v=1" sizes="180x180">
+<link rel="manifest" href="{{AssetUrlPrefix}}/trueog-manifest.json?v=1">
+<meta name="theme-color" content="#131416">
+<meta name="msapplication-TileColor" content="#131416">
+<meta name="msapplication-TileImage" content="{{AssetUrlPrefix}}/img/trueog-icon-192.png?v=1">
+<meta name="msapplication-config" content="{{AssetUrlPrefix}}/browserconfig.xml?v=1">

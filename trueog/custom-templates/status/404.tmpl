@@ -1,0 +1,21 @@
+{{/* Override of Gitea's templates/status/404.tmpl (verified against Gitea 28.3.0): Gitea's 404 page with
+     TrueOG's picture above the "404 Not Found" heading and the message; css/trueog-404.css lays it out. */}}
+{{template "base/head" .}}
+<link rel="stylesheet" href="{{AssetUrlPrefix}}/css/trueog-404.css?v=2">
+<div role="main" aria-label="{{.Title}}" class="page-content {{if .IsRepo}}repository{{end}}">
+	{{if .IsRepo}}{{template "repo/header" .}}{{end}}
+	<div class="ui container">
+		{{template "base/alert" .}}
+		<div class="status-page-error trueog-404">
+			<img class="trueog-404-picture" src="{{AssetUrlPrefix}}/img/trueog-404.jpg?v=1" width="960" height="960" alt="A white dog looks at the camera. Caption: [Tail wagging stops]">
+			<div class="status-page-error-title">404 Not Found</div>
+			<div class="tw-text-center">
+				<div class="tw-my-4">{{if .NotFoundPrompt}}{{.NotFoundPrompt}}{{else}}{{ctx.Locale.Tr "error404"}}{{end}}</div>
+				{{if .NotFoundGoBackURL}}
+					<a class="tw-block tw-my-4" href="{{.NotFoundGoBackURL}}">{{ctx.Locale.Tr "go_back"}}</a>
+				{{end}}
+			</div>
+		</div>
+	</div>
+</div>
+{{template "base/footer" .}}

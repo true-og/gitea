@@ -1,0 +1,8 @@
+{{/* TrueOG title: "TrueOG", Gitea's teacup (links to Gitea's website), "Gitea". Shared by
+     trueog/landing.tmpl (which adds the big logo above it and the tagline below) and
+     user/auth/signin.tmpl, inside their .trueog-hero; styled by css/trueog-home.css. The teacup sits
+     inside the h1 so it shares the title's outline; the h1's aria-label keeps the heading's name
+     "TrueOG Gitea" without the link's label. */}}
+<div class="trueog-title-row">
+	<h1 class="trueog-title" aria-label="TrueOG Gitea"><span><span class="trueog-true">True</span><span class="trueog-og">OG</span></span><a class="trueog-tea" href="https://about.gitea.com/" aria-label="Gitea website"><img src="{{AssetUrlPrefix}}/img/logo.svg" width="64" height="64" alt=""></a><span class="trueog-gitea">Gitea</span></h1>
+</div>

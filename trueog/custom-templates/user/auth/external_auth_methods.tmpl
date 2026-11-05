@@ -1,0 +1,22 @@
+{{/* Override verified against Gitea 28.2.0: per-provider button labels, plus the landing page's
+     button colors (trueog-github, trueog-staff) and its people icon for staff sign-in. */}}
+<div id="external-login-navigator" class="tw-py-1 tw-flex tw-flex-col tw-gap-3">
+	{{range $provider := .OAuth2Providers}}
+		<a class="ui button external-login-link tw-gap-3{{if eq $provider.DisplayName "staffauth"}} trueog-staff{{else if eq $provider.DisplayName "github"}} trueog-github{{end}}" data-require-appurl-check="true" rel="nofollow" href="{{AppSubUrl}}/user/oauth2/{{$provider.DisplayName | PathEscape}}">
+			{{if eq $provider.DisplayName "staffauth"}}{{svg "octicon-people" 24}}{{else}}{{$provider.IconHTML 24}}{{end}}
+			{{if eq $provider.DisplayName "staffauth"}}Sign in as staff
+			{{else if eq $provider.DisplayName "github"}}Sign in with GitHub
+			{{else}}{{ctx.Locale.Tr "sign_in_with_provider" $provider.DisplayName}}{{end}}
+		</a>
+	{{end}}
+	{{if .EnableOpenIDSignIn}}
+		<a class="ui button external-login-link tw-gap-3" data-require-appurl-check="true" rel="nofollow" href="{{AppSubUrl}}/user/login/openid">
+			{{svg "fontawesome-openid" 24}} {{ctx.Locale.Tr "sign_in_with_provider" "OpenID"}}
+		</a>
+	{{end}}
+	{{if .EnableSSPI}}
+		<a class="ui button external-login-link tw-gap-3" rel="nofollow" href="{{AppSubUrl}}/user/login?auth_with_sspi=1">
+			{{svg "fontawesome-windows" 24}} Windows SSPI
+		</a>
+	{{end}}
+</div>

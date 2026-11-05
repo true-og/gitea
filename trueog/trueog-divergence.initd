@@ -1,0 +1,27 @@
+#!/sbin/openrc-run
+# /etc/init.d/trueog-divergence: live ahead/behind counts for Gitea's fork banner, under supervise-daemon
+# like Gitea itself. Nginx routes /-/trueog-divergence to 127.0.0.1:3992.
+description="TrueOG fork banner ahead/behind counts"
+
+export USER=gitea HOME=/var/lib/gitea
+
+supervisor="supervise-daemon"
+command="/usr/bin/python3"
+command_args="/usr/local/sbin/trueog-divergence"
+command_user="gitea:gitea"
+directory="/var/lib/gitea"
+pidfile="/run/trueog-divergence.pid"
+respawn_delay=5
+respawn_max=0
+output_log="/var/log/gitea/trueog-divergence.log"
+error_log="/var/log/gitea/trueog-divergence.log"
+
+depend() {
+	need net
+	after gitea
+}
+
+start_pre() {
+	checkpath -d -m 0755 -o gitea:gitea /var/log/gitea
+	[ -r /usr/local/sbin/trueog-divergence ] || { eerror "/usr/local/sbin/trueog-divergence is missing"; return 1; }
+}

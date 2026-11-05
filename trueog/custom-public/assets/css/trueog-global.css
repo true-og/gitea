@@ -1,0 +1,29 @@
+/* TrueOG sitewide branding. Keep the pixel font limited to navigation and display headings so
+   repository content, code, forms, and long text retain Gitea's highly readable UI fonts. */
+
+@font-face {
+	font-family: "Monocraft";
+	src: url("../fonts/Monocraft.woff2?v=4.2") format("woff2");
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+}
+
+/* Replace Gitea's cup mark without pinning the full upstream navbar template. The source image
+   remains a normal <img>, so its home-link behavior and accessible label stay intact. */
+#navbar-logo > img {
+	content: url("../img/trueog-logo.png?v=1");
+	width: 36px;
+	height: 36px;
+	object-fit: contain;
+}
+
+#navbar > .navbar-left > .item,
+#navbar > .navbar-right > .item {
+	font-family: "Monocraft", monospace;
+	font-weight: 400;
+	font-kerning: none;
+	font-variant-ligatures: none;
+	font-feature-settings: "kern" 0, "liga" 0, "calt" 0;
+	letter-spacing: 0;
+}

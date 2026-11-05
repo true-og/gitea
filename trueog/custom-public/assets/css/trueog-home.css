@@ -1,0 +1,731 @@
+/* TrueOG landing page for git.trueog.net (custom/templates/trueog/landing.tmpl), also used by the
+   sign-in page (user/auth/signin.tmpl; see "Sign-in page" at the end).
+   The whole page between the navbar and the footer is dark, with falling enchanting-table glyphs, in
+   every Gitea theme, so the brand green and red stay readable. The cards follow Gitea's theme variables. */
+
+.trueog-home {
+	padding-bottom: 3rem;
+}
+
+/* The whole landing page uses Monocraft. The sign-in page shares trueog-home for its dark background,
+   but keeps Gitea's normal form font except where its existing targeted rules opt into Monocraft. */
+.page-content.trueog-home:not(.trueog-signin) {
+	font-family: "Monocraft", monospace;
+	font-weight: 400;
+	font-kerning: none;
+	font-variant-ligatures: none;
+	font-feature-settings: "kern" 0, "liga" 0, "calt" 0;
+	letter-spacing: 0;
+}
+
+/* ---- Page background ----
+   Gitea's .full.height wrapper grows down to the footer. Layers, back to front: its solid dark
+   background, the glyph rain (.trueog-glyphs, z -2), then the navbar and page content. */
+
+.full.height:has(> .trueog-home) {
+	position: relative;
+	isolation: isolate;
+	background: #131416;
+}
+
+/* Signed out, the navbar logo and the Home link both go to /, so the landing page and the sign-in page
+   (only ever seen signed out) hide the logo. Signed in, the logo is the way back to the dashboard and
+   stays. #navbar is repeated to outrank Gitea's mobile rule (#navbar #navbar-logo { display: flex }). */
+.full.height:has(> .trueog-home > .trueog-hero.trueog-guest) #navbar #navbar-logo,
+.full.height:has(> .trueog-signin) #navbar #navbar-logo {
+	display: none;
+}
+
+/* ---- Enchanting-table glyph rain ----
+   trueog/glyphs.tmpl holds original 5x7 pixel drawings of the Standard Galactic Alphabet letterforms
+   (no Minecraft font, texture, or particle sprite is copied), as Matrix-style streams falling from the
+   top of the page in Matrix green. Each stream (.trueog-stream) is a full-height column; its
+   .trueog-drop is also full height with the glyph trail at its bottom, so translating it from -100% to
+   60% of its own height carries the trail from above the page to below it on any page height.
+   Smoothness: only transform animates, each drop is its own compositor layer (will-change), and
+   nothing inside the moving layers uses masks or filters, so the browser rasterizes each trail once
+   and then only slides it. The trail's fade is baked into each glyph's opacity; the last glyph
+   (.trueog-head) is the only one at full opacity, so it is the brightest green. No JavaScript is
+   involved. */
+
+.trueog-glyphs {
+	position: absolute;
+	inset: 0;
+	z-index: -2;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.trueog-glyph-defs {
+	position: absolute;
+	width: 0;
+	height: 0;
+}
+
+.trueog-stream {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: var(--s);
+	contain: layout paint style;
+}
+
+.trueog-drop {
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	gap: calc(var(--s) * 0.3);
+	height: 100%;
+	opacity: var(--o);
+	transform: translate3d(0, -100%, 0);
+	will-change: transform;
+	backface-visibility: hidden;
+	animation: trueog-fall calc(var(--t) + 4s) linear var(--delay) infinite;
+}
+
+.trueog-drop svg {
+	display: block;
+	flex: none;
+	width: var(--s);
+	height: calc(var(--s) * 1.4);
+	shape-rendering: crispEdges;
+	fill: #609926; /* upstream Gitea brand green */
+}
+
+@keyframes trueog-fall {
+	from {
+		transform: translate3d(0, -100%, 0);
+	}
+
+	to {
+		transform: translate3d(0, 60%, 0);
+	}
+}
+
+/* Twenty compositor layers are enough to cover every width without the stutter caused by all forty
+   generated streams animating simultaneously. The retained columns are already evenly distributed. */
+.trueog-stream-wide {
+	display: none;
+}
+
+/* Without motion, each stream rests at its own fixed height instead of falling. */
+@media (prefers-reduced-motion: reduce) {
+	.trueog-drop {
+		animation: none;
+		transform: translate3d(0, var(--rest), 0);
+	}
+}
+
+/* Forced colors (Windows High Contrast etc.) replace author colors: remove decoration entirely. */
+@media (forced-colors: active) {
+	.trueog-glyphs {
+		display: none;
+	}
+}
+
+/* A higher-contrast preference (e.g. Android's system Contrast = High, which Gecko exposes as
+   prefers-contrast: more) keeps the rain but dims it so foreground text keeps its contrast. */
+@media (prefers-contrast: more) {
+	.trueog-drop {
+		opacity: calc(var(--o) * 0.35);
+	}
+}
+
+/* ---- Banner ---- */
+
+/* Gitea gives a page's first child a top margin, which left a strip between the navbar and the
+   banner. The banner sits directly under the navbar instead. */
+.page-content.trueog-home > .trueog-hero:first-child {
+	margin-top: 0;
+}
+
+.trueog-hero {
+	overflow-x: clip;
+	padding: clamp(1.25rem, 3vw, 2rem) 1rem clamp(1.5rem, 4vw, 2.5rem);
+	text-align: center;
+	color: #FFFFFF;
+}
+
+/* The big logo links to the main website. */
+.trueog-logo-link {
+	display: inline-block;
+	border-radius: 8px;
+}
+
+.trueog-logo-link:focus-visible {
+	outline: 3px solid #FFFFFF;
+	outline-offset: 4px;
+}
+
+.trueog-logo {
+	display: block;
+	width: clamp(96px, 18vw, 160px);
+	height: auto;
+}
+
+/* The title row sets the title's size, so the teacup between "TrueOG" and "Gitea" scales with it.
+   The teacup links to Gitea's website. */
+.trueog-title-row {
+	display: flex;
+	justify-content: center;
+	margin: 0.35em 0 0.15em;
+	font-size: clamp(1.9rem, 9vw, 4.5rem);
+}
+
+/* Monocraft leaves one empty pixel column (1/9 em) to the right of every letter, so the gap after
+   "OG" looked wider than the gap before "Gitea". Pulling the teacup left by that column makes the
+   visible gaps on both sides equal (the cup's own blank edges are equal). */
+.trueog-tea {
+	display: block;
+	margin-left: calc(-1em / 9);
+	border-radius: 6px;
+}
+
+.trueog-tea img {
+	display: block;
+	width: 1.3em;
+	height: 1.3em;
+}
+
+.trueog-tea:focus-visible {
+	outline: 3px solid #FFFFFF;
+	outline-offset: 4px;
+}
+
+/* "TrueOG", the teacup, and "Gitea" are one centered row with a 0.2em gap on each side of the
+   teacup. The title, teacup included, gets a thin, hard white outline in every theme. It is drawn
+   with drop-shadow filters rather than text-shadow or text-stroke because dark-mode extensions (Dark
+   Reader and others like it) recolor shadow and stroke colors, which turned the white outline dark,
+   but leave filters alone. The four zero-blur shadows stack, so together they cover every side and
+   corner. The second filter rounds the width to whole pixels (at least 1px) to keep the pixel font
+   crisp; browsers without CSS round() keep the first. */
+.trueog-title {
+	display: flex;
+	align-items: center;
+	gap: 0.2em;
+	margin: 0;
+	font-family: "Monocraft", monospace;
+	font-size: 1em;
+	font-weight: normal;
+	font-kerning: none;
+	font-variant-ligatures: none;
+	font-feature-settings: "kern" 0, "liga" 0, "calt" 0;
+	letter-spacing: 0;
+	line-height: 1.1;
+	color: #FFFFFF;
+	filter:
+		drop-shadow(0.03em 0 0 #FFFFFF) drop-shadow(-0.03em 0 0 #FFFFFF)
+		drop-shadow(0 0.03em 0 #FFFFFF) drop-shadow(0 -0.03em 0 #FFFFFF);
+	filter:
+		drop-shadow(max(1px, round(0.03em, 1px)) 0 0 #FFFFFF)
+		drop-shadow(min(-1px, round(-0.03em, 1px)) 0 0 #FFFFFF)
+		drop-shadow(0 max(1px, round(0.03em, 1px)) 0 #FFFFFF)
+		drop-shadow(0 min(-1px, round(-0.03em, 1px)) 0 #FFFFFF);
+}
+
+/* Same colors as "True" and "OG" on true-og.net. */
+.trueog-true {
+	color: #55FF55;
+}
+
+.trueog-og {
+	color: #FF5555;
+}
+
+/* Gitea's exact logo green comes from the active upstream logo.svg. */
+.trueog-gitea {
+	color: #609926;
+}
+
+/* Every banner button is the same size: two equal columns, or one full-width column on phones.
+   19rem leaves room for the icon and the 19-character label column (see the buttons below). */
+.trueog-actions {
+	display: grid;
+	grid-template-columns: repeat(2, 19rem);
+	justify-content: center;
+	gap: 0.75rem;
+}
+
+.trueog-hero > .trueog-title-row + .trueog-actions {
+	margin-top: 2rem;
+}
+
+.trueog-actions + .trueog-actions {
+	margin-top: 0.75rem;
+}
+
+@media (max-width: 600px) {
+	.trueog-actions {
+		grid-template-columns: minmax(0, 20rem);
+	}
+}
+
+/* Buttons follow test.trueog.net's "apply" buttons: Monocraft, a dark translucent fill, and a 2px
+   border in a Minecraft chat color that fills the button on hover. --edge is the color; --on-edge
+   is the text color once filled (black on the bright colors, white on purple). The sign-in page's
+   buttons share the style. Each button has a fixed icon column and a text column that fills the rest
+   of the button. The label is centered in that second column: horizontally between the glyph and the
+   button's right edge. */
+.trueog-actions .ui.button,
+.trueog-signin-box .ui.button {
+	--edge: #FFFFFF;
+	--on-edge: #000000;
+	display: grid;
+	grid-template-columns: 1.25em minmax(0, 1fr);
+	align-items: center;
+	justify-items: stretch;
+	gap: 0.5em;
+	text-align: center;
+	width: 100%;
+	margin: 0;
+	padding: 0.65em 1em;
+	border: 2px solid var(--edge);
+	border-radius: 0.3em;
+	background: rgba(0, 0, 0, 0.55);
+	font-family: "Monocraft", monospace;
+	font-size: 1rem;
+	font-weight: normal;
+	font-kerning: none;
+	font-variant-ligatures: none;
+	font-feature-settings: "kern" 0, "liga" 0, "calt" 0;
+	color: #FFFFFF;
+}
+
+/* Browsers may restore a clicked contribution link from the back/forward cache in its visited and
+   focused state. Pin every non-hovered link state to the intended white foreground so Gitea's
+   generic link-state rules cannot briefly recolor the pull-request or bug glyph during restoration. */
+.trueog-actions a.ui.button:link,
+.trueog-actions a.ui.button:visited,
+.trueog-actions a.ui.button:focus {
+	color: #FFFFFF;
+}
+
+.trueog-actions .ui.button > :is(.svg, img),
+.trueog-signin-box .ui.button > :is(.svg, img) {
+	justify-self: center;
+}
+
+/* Explicit wrappers keep the landing action glyphs out of anonymous grid items. */
+.trueog-actions .trueog-action-icon {
+	display: grid;
+	place-items: center;
+	width: 1.25em;
+	height: 1.25em;
+}
+
+.trueog-actions .ui.button .svg,
+.trueog-signin-box .ui.button .svg {
+	color: inherit;
+	fill: currentColor;
+}
+
+.trueog-actions .trueog-action-icon .svg {
+	display: block;
+	width: 100%;
+	height: 100%;
+	min-width: 0;
+}
+
+.trueog-actions .trueog-action-label {
+	min-width: 0;
+	text-align: center;
+}
+
+.trueog-actions a.ui.button:hover,
+.trueog-actions a.ui.button:active,
+.trueog-signin-box .ui.button:hover,
+.trueog-signin-box .ui.button:active {
+	background: var(--edge);
+	color: var(--on-edge);
+}
+
+.trueog-actions .ui.button:focus-visible,
+.trueog-signin-box .ui.button:focus-visible {
+	outline: 3px solid #FFFFFF;
+	outline-offset: 3px;
+}
+
+/* TrueOG green, the "True" color in the title (Bukkit ChatColor.GREEN, §a). */
+.trueog-home .ui.button.trueog-pr,
+.trueog-signin-box .ui.primary.button {
+	--edge: #55FF55;
+	--on-edge: #000000;
+}
+
+/* Gold, like test.trueog.net's Buy buttons (ChatColor.GOLD, §6). */
+.trueog-home .ui.button.trueog-bug {
+	--edge: #FFAA00;
+	--on-edge: #000000;
+}
+
+/* Aqua, test.trueog.net's accent color (ChatColor.AQUA, §b). */
+.trueog-home .ui.button.trueog-github {
+	--edge: #55FFFF;
+	--on-edge: #000000;
+}
+
+/* Dark red (ChatColor.DARK_RED, §4). */
+.trueog-home .ui.button.trueog-staff {
+	--edge: #AA0000;
+	--on-edge: #FFFFFF;
+}
+
+/* ---- Cards (follow the visitor's Gitea theme) ---- */
+
+/* Six cards: two rows of three on wide desktops, three rows of two from 700px, one column below that.
+   Prose flows across the card's full width inside an exact three-line content area. Copy is short
+   enough to fit without clipping at the supported 320px minimum; the clamp is only a safety bound.
+   Every row is as tall as the tallest one (the Statistics card's), so the five text cards are all the
+   same size, with the same padding, heading position, heading-to-text gap, and space below the text. */
+.trueog-cards {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	grid-auto-rows: 1fr;
+	gap: 1rem;
+	max-width: 90rem;
+	margin: 1.5rem auto 0;
+	padding: 0 1rem;
+}
+
+@media (max-width: 1279.98px) {
+	.trueog-cards {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 699.98px) {
+	.trueog-cards {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.trueog-card {
+	container-type: inline-size;
+	padding: 1.25rem 1.35rem;
+	border: 1px solid var(--color-secondary);
+	border-radius: var(--border-radius-medium, 8px);
+	background: var(--color-box-body);
+}
+
+/* A full 1rem between every card's title and what follows it (text, or the statistics). */
+.trueog-card h2 {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin: 0 0 1rem;
+	font-family: "Monocraft", monospace;
+	font-size: 1.15rem;
+	font-weight: normal;
+	font-kerning: none;
+	font-variant-ligatures: none;
+	font-feature-settings: "kern" 0, "liga" 0, "calt" 0;
+	letter-spacing: 0;
+	color: var(--color-text);
+}
+
+/* Card headings link in Gitea's brand green (as in the title) and keep an underline, so they still
+   read as links. The cards use Gitea's theme surfaces, so light-dark() selects a contrast-safe green
+   for every bundled light, dark, auto, and color-vision theme. */
+.trueog-card h2 .svg,
+.trueog-card h2 a,
+.trueog-card h2 a:hover {
+	color: var(--color-text);
+	color: light-dark(#4d7f1e, #78b542);
+}
+
+.trueog-card h2 a {
+	text-decoration-line: underline;
+	text-decoration-thickness: 2px;
+	text-underline-offset: 0.25em;
+}
+
+.trueog-card h2 a:hover {
+	text-decoration-thickness: 3px;
+}
+
+/* An up-right arrow (Gitea's octicon-arrow-up-right, as a mask filled with the link color) after
+   each card title and each statistics number marks it as a link. The mask's viewBox is cropped to the
+   arrow itself (the octicon draws it in the middle half of its 16-unit box), so it fills its box. As an inline-block it stays out of the underline, and its empty content
+   means screen readers skip it. */
+.trueog-card h2 a::after,
+.trueog-stats dd a::after {
+	content: "";
+	display: inline-block;
+	width: 0.7em;
+	height: 0.7em;
+	margin-left: 0.4em;
+	vertical-align: 0;
+	background-color: currentColor;
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='3.98 4 8.07 8.07'%3E%3Cpath d='M4.53 4.75A.75.75 0 0 1 5.28 4h6.01a.75.75 0 0 1 .75.75v6.01a.75.75 0 0 1-1.5 0v-4.2l-5.26 5.261a.749.749 0 0 1-1.275-.326.75.75 0 0 1 .215-.734L9.48 5.5h-4.2a.75.75 0 0 1-.75-.75'/%3E%3C/svg%3E") center / contain no-repeat;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='3.98 4 8.07 8.07'%3E%3Cpath d='M4.53 4.75A.75.75 0 0 1 5.28 4h6.01a.75.75 0 0 1 .75.75v6.01a.75.75 0 0 1-1.5 0v-4.2l-5.26 5.261a.749.749 0 0 1-1.275-.326.75.75 0 0 1 .215-.734L9.48 5.5h-4.2a.75.75 0 0 1-.75-.75'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.trueog-card h2 a:focus-visible {
+	outline: 2px solid var(--color-text);
+	outline-color: light-dark(#4d7f1e, #78b542);
+	outline-offset: 3px;
+	border-radius: 2px;
+}
+
+/* Every card icon has its own color: Contributor guide orange, Statistics aqua, Server software purple,
+   100% open source red, Discord blue, GitHub the theme's text color. Most are Bukkit ChatColor values;
+   pale ones would vanish on the light theme's white cards, so they also get Minecraft's own text
+   shadow (the same color at a quarter brightness, offset 1px). */
+.trueog-card h2 .octicon-heart-fill {
+	color: #FF5555; /* RED, the "OG" color in the title */
+	filter: drop-shadow(1px 1px 0 #3F1515);
+}
+
+/* The squid for TrueOG's Purpur fork. */
+.trueog-card h2 .trueog-squid {
+	color: #AA00AA; /* DARK_PURPLE */
+}
+
+.trueog-card h2 .octicon-graph {
+	color: #55FFFF; /* AQUA, the Sign in with GitHub button's color */
+	filter: drop-shadow(1px 1px 0 #153F3F);
+}
+
+/* The Contributor guide card's in-game lambda matches the card's book icon. */
+.trueog-lambda {
+	color: #FF8800;
+	text-shadow: 1px 1px 0 #3F2200;
+}
+
+.trueog-card h2 .octicon-book {
+	color: #FF8800; /* orange */
+	filter: drop-shadow(1px 1px 0 #3F2200);
+}
+
+/* Discord blue: the older blurple chosen for the former Discord button. It shows on light and dark
+   cards alike, so it needs no outline or filter and stays crisp. The bundled icon hard-codes its fill. */
+.trueog-card h2 .gitea-discord {
+	color: #7289DA;
+}
+
+.trueog-card h2 .gitea-discord path {
+	fill: currentColor;
+}
+
+.trueog-card h2 .octicon-mark-github {
+	color: var(--color-text);
+}
+
+.trueog-card p.trueog-card-copy {
+	display: none;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 3;
+	overflow: hidden;
+	height: calc(3 * 1.55em);
+	margin: 0;
+	line-height: 1.55;
+	color: var(--color-text-light);
+}
+
+/* Each responsive copy is long enough to occupy exactly three natural Monocraft lines throughout
+   its complete container-width tier. This keeps prose flowing across the whole card without the
+   short, forced line spans that previously left half of wide cards empty. */
+.trueog-card p.trueog-card-copy-xs {
+	display: -webkit-box;
+}
+
+@container (min-width: 320px) {
+	.trueog-card p.trueog-card-copy-xs {
+		display: none;
+	}
+
+	.trueog-card p.trueog-card-copy-sm {
+		display: -webkit-box;
+	}
+}
+
+@container (min-width: 400px) {
+	.trueog-card p.trueog-card-copy-sm {
+		display: none;
+	}
+
+	.trueog-card p.trueog-card-copy-md {
+		display: -webkit-box;
+	}
+}
+
+@container (min-width: 500px) {
+	.trueog-card p.trueog-card-copy-md {
+		display: none;
+	}
+
+	.trueog-card p.trueog-card-copy-lg {
+		display: -webkit-box;
+	}
+}
+
+/* Statistics: three live counts, each a large number over a small label. */
+/* The three statistics fill the card: equal, centered columns across its width, in the middle of the
+   card's height (this card is the tallest and sets every row's height). */
+.trueog-card.trueog-stats {
+	display: flex;
+	flex-direction: column;
+}
+
+/* Columns are equal while the labels fit; on a narrow card each column is at least as wide as its
+   label and the others share what is left. Each column starts at the top of the row, so the numbers
+   line up even if the labels ever differ in height, and the row itself stays centered. */
+.trueog-stats dl {
+	flex: 1;
+	display: grid;
+	grid-template-columns: repeat(3, minmax(max-content, 1fr));
+	align-items: start;
+	align-content: center;
+	gap: 0.5rem;
+	margin: 0; /* the heading's own bottom margin is the gap, as in the other cards */
+}
+
+.trueog-stats dl > div {
+	display: flex;
+	flex-direction: column-reverse;
+	align-items: center;
+	gap: 0.5rem;
+	text-align: center;
+}
+
+.trueog-stats dd {
+	margin: 0;
+	font-family: "Monocraft", monospace;
+	font-size: 2rem;
+	font-kerning: none;
+	font-variant-ligatures: none;
+	font-feature-settings: "kern" 0, "liga" 0, "calt" 0;
+	line-height: 1.1;
+	color: var(--color-text);
+}
+
+/* Every label is two lines: "Public" / "Repos", "Open" / "pull requests", "Open" / "issues"; no line
+   wraps on its own. Labels are 0.9rem
+   when the card has room and shrink with narrower cards just enough for all three columns to fit side by
+   side: Monocraft glyphs are 2/3em wide, so the widest lines, "Public", "pull requests", and "issues" (25
+   characters), take 16.67em, plus the two 0.5rem column gaps; dividing by 16.9 leaves the same 1.4% slack
+   as before. Browsers without container units keep 0.85rem. */
+.trueog-stats dt {
+	font-size: 0.85rem;
+	font-size: min(0.9rem, (100cqi - 1rem) / 16.9);
+	white-space: nowrap;
+	color: var(--color-text-light);
+}
+
+/* Each number links to what it counts, in the same green underlined style as the headings. The numbers
+   themselves come from css/trueog-stats.css, which the gitea-homepage-stats cron job rewrites every 5
+   minutes; until it exists the placeholder dash shows. */
+.trueog-stat::before {
+	content: "\2013";
+}
+
+.trueog-stats dd a,
+.trueog-stats dd a:hover {
+	color: var(--color-text);
+	color: light-dark(#4d7f1e, #78b542);
+	text-decoration-line: underline;
+	text-decoration-thickness: 2px;
+	text-underline-offset: 0.2em;
+}
+
+.trueog-stats dd a:hover {
+	text-decoration-thickness: 3px;
+}
+
+/* The numbers' arrow (shared with the card titles above) is smaller and raised beside the number. It
+   hangs just outside the link, so the number itself stays centered in its column. */
+.trueog-stats dd a {
+	position: relative;
+}
+
+.trueog-stats dd a::after {
+	position: absolute;
+	top: 0.1em;
+	left: 100%;
+	width: 0.4em;
+	height: 0.4em;
+	margin-left: 0.12em;
+}
+
+.trueog-stats dd a:focus-visible {
+	outline: 2px solid var(--color-text);
+	outline-color: light-dark(#4d7f1e, #78b542);
+	outline-offset: 3px;
+	border-radius: 2px;
+}
+
+/* ---- Sign-in page (user/auth/signin.tmpl) ----
+   The landing page's title and glyph rain, with Gitea's own sign-in form inside the banner. The form's
+   heading and buttons share one dark box in the buttons' style (Minecraft DARK_GRAY border, §8);
+   Gitea's own card background and border inside it are removed, the heading uses Monocraft, and the
+   provider buttons match the landing page's sign-in buttons. Text that Gitea colors from the theme is
+   set light here, because this part of the page is dark in every theme. */
+/* The sign-in page has no logo or tagline, so the banner's top padding is a little taller and the
+   form keeps the tagline's gap below the title. */
+.trueog-signin > .trueog-hero {
+	padding-top: clamp(2rem, 6vw, 4rem);
+}
+
+.trueog-signin-box {
+	box-sizing: border-box;
+	width: min(100%, 25rem);
+	margin: 1.6rem auto 0;
+	padding: 1.25rem 1.5rem 1.5rem;
+	border: 2px solid #555555;
+	border-radius: 0.3em;
+	background: rgba(0, 0, 0, 0.55);
+	text-align: left;
+	color: #FFFFFF;
+}
+
+.trueog-signin-box .ui.attached.header,
+.trueog-signin-box .ui.attached.segment {
+	width: 100%;
+	max-width: 100%;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: #FFFFFF;
+}
+
+.trueog-signin-box .ui.top.attached.header {
+	margin-bottom: 1rem;
+	font-family: "Monocraft", monospace;
+	font-size: 1.15rem;
+	font-weight: normal;
+	font-kerning: none;
+	font-variant-ligatures: none;
+	font-feature-settings: "kern" 0, "liga" 0, "calt" 0;
+	letter-spacing: 0;
+}
+
+/* Gitea's .ui.container keeps the page's side margins (up to 32px each), which squeezed the buttons
+   on wide screens; inside the box it takes the full width. */
+.trueog-signin-box .ui.container {
+	width: 100%;
+	max-width: 100%;
+	margin: 0;
+}
+
+.trueog-signin-box .ui.container + .ui.container {
+	margin-top: 1rem;
+}
+
+.trueog-signin-box .ui.form label,
+.trueog-signin-box .ui.checkbox label,
+.trueog-signin-box .divider {
+	color: #FFFFFF;
+}
+
+.trueog-signin-box a:not(.button) {
+	color: #55FFFF;
+}
+
+/* Gitea gives 24px icons a 24px min-width; these match the 1.25em icon column instead. */
+.trueog-signin-box .ui.button .svg,
+.trueog-signin-box .ui.button img {
+	width: 1.25em;
+	min-width: 0;
+	height: 1.25em;
+}

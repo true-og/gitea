@@ -1,0 +1,16 @@
+/* TrueOG's 404 page (templates/status/404.tmpl). Gitea starts its error block almost halfway down the
+   window; with the picture it starts higher, so the picture, the heading below it and the message fit on
+   one screen. */
+.status-page-error.trueog-404 {
+	margin-top: max(5vh, 24px);
+	margin-bottom: 48px;
+}
+
+.trueog-404-picture {
+	display: block;
+	width: min(360px, 80vw, 50vh);
+	height: auto;
+	margin: 0 auto 18px;
+	border-radius: var(--border-radius-medium);
+	box-shadow: 0 2px 8px var(--color-shadow);
+}

@@ -1,0 +1,18 @@
+{{/* Override verified against Gitea 28.2.0. The sign-in page in the landing page's style: the TrueOG
+     title and glyph rain (trueog/title, trueog/glyphs, css/trueog-home.css; no big logo or tagline)
+     around Gitea's own, unchanged sign-in form (user/auth/signin_inner), in a dark box.
+     .trueog-signin-box replaces upstream's grid wrapper so the form sits inside the banner.
+     trueog-home is the landing page's page-level class (dark page, glyph layer); like the landing page,
+     this adds no JavaScript. */}}
+{{template "base/head" .}}
+<link rel="stylesheet" href="{{AssetUrlPrefix}}/css/trueog-home.css?v=39">
+<div role="main" aria-label="{{.Title}}" class="page-content user signin trueog-home trueog-signin{{if .LinkAccountMode}} icon{{end}}">
+	<section class="trueog-hero">
+		{{template "trueog/title" .}}
+		<div class="trueog-signin-box">
+			{{template "user/auth/signin_inner" .}}
+		</div>
+	</section>
+	{{template "trueog/glyphs" .}}
+</div>
+{{template "base/footer" .}}

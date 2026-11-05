@@ -1,0 +1,27 @@
+{{/* Override of templates/user/dashboard/dashboard.tmpl (verified against Gitea 28.2.0). Signed-in
+     users always get this template at /, so the navbar's Home link (custom/extra_links.tmpl) uses
+     /?home=1 to show them the TrueOG landing page instead. The else branch is the unchanged upstream
+     template. */}}
+{{if eq .CurrentURL (print AppSubUrl "/?home=1")}}
+{{template "base/head" .}}
+{{template "trueog/landing" .}}
+{{template "base/footer" .}}
+{{else}}
+{{template "base/head" .}}
+<div role="main" aria-label="{{.Title}}" class="page-content dashboard feeds">
+	{{template "user/dashboard/navbar" .}}
+	<div class="ui container flex-container">
+		<div class="flex-container-main">
+			{{template "base/alert" .}}
+			{{template "user/heatmap" .}}
+			{{if .Page.Paginator.TotalPages}}
+				{{template "user/dashboard/feeds" .}}
+			{{else}}
+				{{template "user/dashboard/guide" .}}
+			{{end}}
+		</div>
+		{{template "user/dashboard/repolist" .}}
+	</div>
+</div>
+{{template "base/footer" .}}
+{{end}}

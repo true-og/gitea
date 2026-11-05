@@ -1,0 +1,38 @@
+{{/* Override of Gitea's templates/repo/code/upstream_diverging_info.tmpl (verified against Gitea 28.3.0). Like
+     GitHub, every branch of a fork says how many commits it is ahead of and behind its upstream branch, each
+     linking to that diff; scripts/trueog-upstream.js fetches the live counts from /-/trueog-divergence. Without
+     JavaScript the two diff links remain. Gitea prepares no upstream information for archived forks, so
+     they show no banner. Gitea's Sync fork button keeps Gitea's own condition. When the
+     upstream is not open to everyone (a private repository, a public one whose owning user or
+     organization is limited or private, or one with its Code unit disabled), the banner appears only when
+     Gitea's own would (upstream has newer commits), so it never names such an upstream branch more often
+     than Gitea does. If the owner cannot be loaded, MustOwner returns a placeholder with ID 0, which counts
+     as not open. The counts are given only to visitors who can read both repositories' code. */}}
+{{- $baseOpen := false -}}
+{{- if .UpstreamDivergingInfo -}}
+	{{- $baseOwner := .Repository.BaseRepo.MustOwner ctx -}}
+	{{- $baseOpen = and (not .Repository.BaseRepo.IsPrivate) $baseOwner.ID $baseOwner.Visibility.IsPublic (.Repository.BaseRepo.UnitEnabled ctx ctx.Consts.RepoUnitTypeCode) -}}
+{{- end}}
+{{if and .UpstreamDivergingInfo (or $baseOpen .UpstreamDivergingInfo.BaseBranchHasNewCommits)}}
+{{$baseRepo := .Repository.BaseRepo}}
+{{$baseBranch := .UpstreamDivergingInfo.BaseBranchName}}
+{{$upstreamLink := printf "%s/src/branch/%s" $baseRepo.Link ($baseBranch|PathEscapeSegments)}}
+{{$upstreamRepoBranchDisplay := HTMLFormat "%s:%s" $baseRepo.FullName $baseBranch}}
+{{$thisRepoBranchDisplay := HTMLFormat "%s:%s" .Repository.FullName .BranchName}}
+<div class="ui message flex-text-block trueog-upstream" data-fork="{{.Repository.FullName}}" data-branch="{{.BranchName}}" data-base="{{$baseRepo.FullName}}" data-base-branch="{{$baseBranch}}">
+	<div class="tw-flex-1" data-trueog-upstream-text>
+		Compare this branch with <a href="{{$upstreamLink}}" data-trueog-upstream-link>{{$upstreamRepoBranchDisplay}}</a>:
+		<a href="{{$baseRepo.Link}}/compare/{{$baseBranch|PathEscapeSegments}}...{{.Repository.FullName}}:{{.BranchName|PathEscapeSegments}}" data-trueog-ahead>commits ahead</a>,
+		<a href="{{.Repository.Link}}/compare/{{.BranchName|PathEscapeSegments}}...{{$baseRepo.FullName}}:{{$baseBranch|PathEscapeSegments}}" data-trueog-behind>commits behind</a>.
+	</div>
+	{{if and .CanWriteCode .UpstreamDivergingInfo.BaseBranchHasNewCommits}}
+	<button type="button" class="ui compact primary button tw-m-0 link-action"
+					data-modal-confirm-header="{{ctx.Locale.Tr "repo.pulls.upstream_diverging_merge"}}"
+					data-modal-confirm-content="{{ctx.Locale.Tr "repo.pulls.upstream_diverging_merge_confirm" $upstreamRepoBranchDisplay $thisRepoBranchDisplay}}"
+					data-url="{{.Repository.Link}}/branches/merge-upstream?branch={{.BranchName|QueryEscape}}">
+		{{ctx.Locale.Tr "repo.pulls.upstream_diverging_merge"}}
+	</button>
+	{{end}}
+</div>
+<script src="{{AssetUrlPrefix}}/scripts/trueog-upstream.js?v=1" defer></script>
+{{end}}

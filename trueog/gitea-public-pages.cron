@@ -1,0 +1,2 @@
+# Refresh credential-free public pull indexes and contribution choosers every five minutes.
+*/5 * * * * gitea /usr/local/sbin/gitea-public-pages 2>&1 | logger -t gitea-public-pages

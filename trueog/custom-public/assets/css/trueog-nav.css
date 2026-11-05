@@ -1,0 +1,160 @@
+/* TrueOG navbar and footer additions loaded sitewide by custom/templates/custom/extra_links.tmpl.
+   Gitea renders extension links after Explore; flex order moves Home and the signed-in Dashboard
+   link to the front without pinning the upstream navbar template. */
+
+#navbar .navbar-left > #navbar-logo,
+#navbar .navbar-left > .navbar-mobile-right {
+	order: -3;
+}
+
+#navbar .navbar-left > .trueog-nav-home {
+	order: -2;
+	justify-content: center;
+}
+
+#navbar .trueog-nav-home-lambda {
+	display: block;
+	width: 1em;
+	font-family: "Monocraft", monospace;
+	font-size: 1.5rem;
+	line-height: 1;
+	text-align: center;
+	color: #FFAA00; /* Bukkit ChatColor.GOLD */
+	text-shadow: 1px 1px 0 #3F2A00;
+	/* Monocraft reserves its final 1/9 em as spacing. Half that blank column offsets the visible
+	   lambda ink back to the geometric center of the navbar item's highlight box. */
+	transform: translateX(calc(1em / 18));
+}
+
+#navbar .navbar-left > .trueog-nav-dashboard {
+	order: -1;
+}
+
+/* Signed-in users have an explicit Dashboard item immediately after Home. Its presence is the
+   template-owned state marker, so hide the redundant logo link on desktop and mobile alike. */
+#navbar .navbar-left:has(> .trueog-nav-dashboard) > #navbar-logo {
+	display: none;
+}
+
+/* Signed in, Home and Dashboard plus Gitea's own links need about 820px, but Gitea keeps the desktop
+   layout down to 768px, where the notifications bell overlapped Explore. Narrower link padding in
+   between keeps every item clear of the right-hand controls. */
+@media (min-width: 768px) and (max-width: 879.98px) {
+	#navbar .navbar-left:has(> .trueog-nav-dashboard) > a.item:not(.trueog-nav-home) {
+		padding-left: 7px;
+		padding-right: 7px;
+	}
+}
+
+/* Keep navbar selections recognizably Gitea-green without depending on a light or dark surface.
+   The translucent fill preserves every bundled theme's own text and icon colors, including the
+   protanopia/deuteranopia and tritanopia variants. */
+#navbar > .navbar-left > .item:is(:hover, :focus-visible, .active),
+#navbar > .navbar-right > .item:is(:hover, :focus-visible, .active) {
+	background: rgba(96, 153, 38, 0.14);
+}
+
+/* The complete standard footer uses Monocraft. The flexible middle track centers the motto in the
+   space between Gitea's left and right text groups. */
+.page-footer {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	align-items: center;
+	font-family: "Monocraft", monospace;
+	font-weight: 400;
+	font-kerning: none;
+	font-variant-ligatures: none;
+	font-feature-settings: "kern" 0, "liga" 0, "calt" 0;
+	letter-spacing: 0;
+}
+
+.page-footer::before {
+	content: "ad astra per aspera";
+	grid-column: 2;
+	grid-row: 1;
+	justify-self: center;
+	font-style: italic;
+	/* Bukkit's light aqua (ChatColor.AQUA, §b) with Minecraft's own text shadow: the colour at a quarter
+	   of its brightness, one font pixel down and right. Light themes add a translucent black backing, like
+	   a Minecraft chat line, so the aqua reads at 8.7:1 there; dark themes need none (14:1). Browsers
+	   without light-dark() keep the backing in every theme, which stays readable. */
+	color: #55ffff;
+	text-shadow: 0.1em 0.1em 0 #153f3f;
+	padding: 0.15em 0.6em;
+	border-radius: 4px;
+	background-color: rgba(0, 0, 0, 0.75);
+	background-color: light-dark(rgb(0 0 0 / 0.75), transparent);
+	white-space: nowrap;
+}
+
+/* In Gitea's brand green: the Powered by Gitea link (the teacup before it follows) and the footer's three
+   numbers, the version and the page and template times (each in <strong>; base/footer_content.tmpl wraps
+   the version, which is a link for administrators). The first value, the theme's text color, is the
+   readable fallback for browsers without light-dark();
+   light-dark() then selects a contrast-safe green from each bundled Gitea theme's color-scheme, including
+   the three auto themes: #4a7a1d is 4.8:1 on the light footer (#f6f7fa), #78b542 7.0:1 on the dark one. */
+.page-footer .left-links > a,
+.page-footer .left-links strong,
+.page-footer .left-links strong a {
+	color: var(--color-text);
+	color: light-dark(#4a7a1d, #78b542);
+}
+
+/* Licenses and API in the footer's text color, like the theme and language selectors beside them. */
+.page-footer .right-links > a {
+	color: var(--color-text);
+}
+
+.page-footer .left-links {
+	grid-column: 1;
+	grid-row: 1;
+	justify-content: start;
+}
+
+/* Put a compact Gitea teacup before the standard Powered by Gitea link, in the link's color, followed by
+   one character's space. Masking the bundled logo keeps it legible in every light, dark, auto, and
+   color-vision theme. */
+.page-footer .left-links > a[target="_blank"][href^="https://about.gitea.com"]::before {
+	content: "";
+	display: inline-block;
+	width: 1.1em;
+	height: 1.1em;
+	margin-right: 1ch;
+	vertical-align: -0.18em;
+	background: currentColor;
+	-webkit-mask: url("/assets/img/logo.svg") center / contain no-repeat;
+	mask: url("/assets/img/logo.svg") center / contain no-repeat;
+}
+
+/* The theme and language icons are followed by one character's space too (1ch, one Monocraft cell, the
+   width of a typed space); Gitea's own gaps are 0.5em and 0.25rem. Only the footer labels, not the menus. */
+.page-footer .right-links > .ui.dropdown > .flex-text-inline,
+.page-footer .right-links > .ui.dropdown > .default-text > .theme-menu-item {
+	gap: 1ch;
+}
+
+.page-footer .right-links {
+	grid-column: 3;
+	grid-row: 1;
+	justify-content: end;
+}
+
+@media (max-width: 880px) {
+	.page-footer {
+		display: flex;
+	}
+
+	.page-footer .left-links {
+		order: 1;
+		justify-content: center;
+	}
+
+	.page-footer::before {
+		order: 2;
+	}
+
+	.page-footer .right-links {
+		order: 3;
+		justify-content: center;
+	}
+}
