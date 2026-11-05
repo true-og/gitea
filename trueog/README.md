@@ -21,6 +21,7 @@ the [repository README](../README.md).
 | `upgrade-gitea.sh`, `UPGRADE.md` | Signed-binary upgrade with offline backup, rollback, and checks that every customization survives | run as root |
 | `run-logged.sh` | Runs the two scripts above with their complete output saved to a log | run as root |
 | `check-gitea-logs.sh` | Scans Gitea's logs for serious messages | |
+| `trueog-gitea-fork.py` | Keeps this fork's `trueog/` in step with the deployed files: `check` lists the drift, `prepare` commits it in a work clone, `push` sends it as an ordinary fast-forward (see UPGRADE.md) | run as the operator |
 
 ## Deploying
 

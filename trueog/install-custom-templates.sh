@@ -7,16 +7,17 @@ SRC=/home/system/gitea-upgrade/custom-templates
 DST=/opt/gitea/custom/templates
 find "$SRC" -type f -name '*.tmpl' | while read -r f; do
 	rel=${f#"$SRC"/}
+	# The two hooks below are installed from trueog/; a copy under custom/ (there is none) is never used.
 	[ "$rel" != custom/extra_links_footer.tmpl ] || continue
 	[ "$rel" != custom/header.tmpl ] || continue
 	install -D -m 640 -o gitea -g gitea "$f" "$DST/$rel" && echo "installed $rel"
 done
-# The historical canonical header hook is root-owned. Install the maintained effective hook, which
-# preserves the existing TrueOG CSS/JS and adds cross-browser favicon metadata.
+# Gitea's header hook comes from trueog/header_hook.tmpl: sitewide TrueOG CSS, trueog-global.js only on
+# /trueog/ pages, and cross-browser favicon metadata.
 install -m 640 -o gitea -g gitea "$SRC/trueog/header_hook.tmpl" "$DST/custom/header.tmpl"
 echo "installed custom/header.tmpl from trueog/header_hook.tmpl"
-# The historical canonical hook is root-owned. Install the effective no-output hook from the
-# maintained TrueOG partial so the existing Gitea Licenses link is the footer's only license link.
+# Gitea's footer hook comes from trueog/footer_hook.tmpl: it outputs nothing, so Gitea's own Licenses link
+# is the footer's only license link.
 install -m 640 -o gitea -g gitea "$SRC/trueog/footer_hook.tmpl" "$DST/custom/extra_links_footer.tmpl"
 echo "installed custom/extra_links_footer.tmpl from trueog/footer_hook.tmpl"
 PUBLIC_SRC=/home/system/gitea-upgrade/custom-public
@@ -590,3 +591,5 @@ fi
 curl -fsS http://127.0.0.1:3000/user/login | grep -F 'trueog-nav.css?v=13' >/dev/null
 curl -fsS http://127.0.0.1:3000/user/login | grep -oE 'Sign in (as|with) [A-Za-z]+' | sort -u
 echo "homepage and TrueOG branding verified; one gitea process running"
+# The trueog/gitea fork carries a copy of these files in its trueog/ folder; changes must be committed there too.
+echo "reminder: commit changed customization files to trueog/gitea's trueog/ folder; check: python3 /home/system/gitea-upgrade/trueog-gitea-fork.py check"

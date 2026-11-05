@@ -157,17 +157,21 @@ custom_source_parity() {
 	status=0
 	while IFS= read -r source; do
 		rel=${source#"$SRC/custom-templates"/}
-		if [ "$rel" = custom/header.tmpl ]; then
-			source="$SRC/custom-templates/trueog/header_hook.tmpl"
-		fi
-		if [ "$rel" = custom/extra_links_footer.tmpl ]; then
-			source="$SRC/custom-templates/trueog/footer_hook.tmpl"
-		fi
+		# The two live hooks come from trueog/header_hook.tmpl and trueog/footer_hook.tmpl (checked below);
+		# there are no source copies under custom/, and any that appear are ignored, as the installer does.
+		[ "$rel" != custom/header.tmpl ] || continue
+		[ "$rel" != custom/extra_links_footer.tmpl ] || continue
 		if ! cmp -s "$source" "$CUSTOM/templates/$rel"; then
 			echo "BLOCKER: source/live template mismatch: $rel" >&2
 			status=1
 		fi
 	done <"$tmp_dir/template-files"
+	for pair in custom/header.tmpl:trueog/header_hook.tmpl custom/extra_links_footer.tmpl:trueog/footer_hook.tmpl; do
+		if ! cmp -s "$SRC/custom-templates/${pair#*:}" "$CUSTOM/templates/${pair%%:*}"; then
+			echo "BLOCKER: source/live template mismatch: ${pair%%:*} (from ${pair#*:})" >&2
+			status=1
+		fi
+	done
 	while IFS= read -r source; do
 		rel=${source#"$SRC/custom-public"/}
 		if ! cmp -s "$source" "$CUSTOM/public/$rel"; then

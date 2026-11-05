@@ -189,6 +189,22 @@ exist in the new release and still look right (signed out and signed in, desktop
   `AssetUrlPrefix`, `AppSubUrl`, `svg`, and the octicons `bug`, `book`, `graph`, `heart-fill`,
   `mark-github`, `people`, `git-pull-request`, plus `gitea-discord` and `/assets/img/logo.svg`.
 
+## Keep the trueog/gitea fork in step
+
+https://git.trueog.net/trueog/gitea (`main`, mirrored read-only to GitHub) is Gitea 28.3.0 plus TrueOG's
+commits; its `trueog/` folder is a byte-identical copy of the customization files deployed from here
+(templates, public assets, generators, the count service, Nginx/OpenRC/logrotate files, the install and
+upgrade scripts, this document). Whenever one of them changes, commit the change there too.
+`python3 trueog-gitea-fork.py check` lists what the fork lacks (exit 3 on drift); the installer prints a
+reminder. To update: `python3 trueog-gitea-fork.py prepare MSGFILE` clones `main`, copies the changed and
+new files into `trueog/` and commits as NotAlexNoyle with a plain message (a new override of a Gitea
+template also gets an MIT row in `trueog/NOTICE.md`, edited in the work clone); have Codex review that
+clone adversarially; then `python3 trueog-gitea-fork.py push` pushes it as an ordinary fast-forward (it
+refuses if `main` moved or a commit touches anything outside `trueog/`; never a force push).
+Deliberately not in the fork: `img/trueog-404.jpg` (a third-party picture without a license). Do not press
+"Sync fork" on trueog/gitea: it would merge upstream's development `main`, not a release; a new Gitea
+release is taken by rebasing TrueOG's commits onto the new tag.
+
 ## Prepare a target release
 
 1. Confirm the latest patch in the requested release line using Gitea's official release page.
